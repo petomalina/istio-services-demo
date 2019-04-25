@@ -1,0 +1,17 @@
+apiVersion: skaffold/v1beta8
+kind: Config
+build:
+  artifacts:
+    - image: gcr.io/petomalina/aggregator
+      context: ./aggregator
+      docker:
+        dockerfile: ./aggregator/build/package/Dockerfile
+    - image: gcr.io/petomalina/storage
+      context: ./storage
+      docker:
+        dockerfile: ./storage/build/package/Dockerfile
+deploy:
+  kubectl:
+    manifests:
+      - ./aggregator/deployments/*
+      - ./storage/deployments/*
