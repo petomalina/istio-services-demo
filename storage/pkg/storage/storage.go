@@ -2,6 +2,8 @@ package storage
 
 import (
 	"github.com/labstack/echo"
+	"net/http"
+	"strconv"
 	"sync"
 )
 
@@ -17,7 +19,16 @@ func (s *Service) Create(c echo.Context) error {
 	s.MetricsGuard.Lock()
 	defer s.MetricsGuard.Unlock()
 
-	return nil
+	metric := c.QueryParam("metric")
+	value, _ := strconv.Atoi(c.QueryParam("value"))
+
+	if _, ok := s.Metrics[metric]; !ok {
+		s.Metrics[metric] = make([]int64, 10)
+	}
+
+	s.Metrics[metric] = append(s.Metrics[metric], int64(value))
+
+	return c.String(http.StatusCreated, "OK")
 }
 
 // Query returns a snapshot of data in case it's present. Otherwise, the snapshot is created
@@ -26,5 +37,5 @@ func (s *Service) Get(c echo.Context) error {
 	s.MetricsGuard.Lock()
 	defer s.MetricsGuard.Unlock()
 
-	return nil
+	return c.JSON(http.StatusOK, s.Metrics[c.QueryParam("metric")])
 }
