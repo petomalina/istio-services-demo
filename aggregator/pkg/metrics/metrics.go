@@ -9,7 +9,7 @@ import (
 )
 
 // StorageURL is a URL used to connect to the storage service
-const StorageURL = "storage"
+const StorageURL = "http://storage-svc"
 const ContentTypeJSON = "application/json"
 
 // Service encapsulates the metric controller logic for Observing and Querying data
@@ -53,17 +53,25 @@ func (s *Service) Query(c echo.Context) error {
 
 	metric := c.QueryParam("metric")
 
-	if ss, ok := s.Snapshot[metric]; !ok {
+	if _, ok := s.Snapshot[metric]; !ok {
 		res, err := http.Get(StorageURL + "?metric=" + metric)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
 		metrics := []int64{}
-		err = json.NewDecoder(res.Body).Decode(metrics)
+		err = json.NewDecoder(res.Body).Decode(&metrics)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
+
+		// aggregation
+		var agg int64
+		for _, m := range metrics {
+			agg += m
+		}
+
+		s.Snapshot[metric] = agg
 	}
 
 	return c.JSON(http.StatusOK, queryResponse{
