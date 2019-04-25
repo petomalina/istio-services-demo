@@ -10,7 +10,7 @@ RUN mkdir /build
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /build/aggregator ./cmd/storage
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /build/storage ./cmd/storage
 
 # minimal image
 FROM alpine:latest
